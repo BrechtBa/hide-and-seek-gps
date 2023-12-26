@@ -18,15 +18,20 @@ function generateString(length) {
 
 
 function makeFirebaseRepository(db, auth) {
+
   return {
     createNewGame: (successCallback) => {
       const gameId = generateString(8);
       const game = {
         settings: {
-          duration: 3600*1000
-        },
-        state: {
-          status: "waiting"
+          status: "waiting",
+          duration: 3600*1000,
+          initialPingInterval: 5*60*1000,
+          finalPingInterval: 2*60*1000,
+          startDate: 0,
+          endDate: 0,
+          foundDate: 0,
+          nextPingDate: 0
         }
       }
       set(ref(db, `games/${gameId}`), game).then(
@@ -47,59 +52,114 @@ function makeFirebaseRepository(db, auth) {
     },
 
     startGame: (gameId, successCallback) => {
-      const startDate = new Date();
-      const endDate = new Date(startDate.getTime() + 3600*1000);
-      const nextPingDate = new Date(startDate.getTime() + 10*1000);
 
-      const state = {
-        status: "active",
-        startDate: startDate.getTime(),
-        endDate: endDate.getTime(),
-        nextPingDate: nextPingDate.getTime()
-      }
-
-      set(ref(db, `games/${gameId}/state`), state).then(
-        successCallback()
-      ).catch(() => {});
+      get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          let settings = snapshot.val();
+          const startDate = new Date();
+          const endDate = new Date(startDate.getTime() + settings.duration);
+          const nextPingDate = startDate;
+          const newSettings = {
+            ...settings,
+            status: "active",
+            startDate: startDate.getTime(),
+            endDate: endDate.getTime(),
+            nextPingDate: nextPingDate.getTime()
+          }
+          console.log(newSettings);
+          set(ref(db, `games/${gameId}/settings`), newSettings).then(
+            successCallback()
+          ).catch(() => {});
+        }
+        else {
+          console.log("Could not find game settings");
+        }
+      });
     },
 
     endGame: (gameId, successCallback) => {
-      set(ref(db, `games/${gameId}/state/status`), "finished").then(
+      const now = new Date().getTime();
+      set(ref(db, `games/${gameId}/settings/status`), "finished").then(
+        set(ref(db, `games/${gameId}/settings/foundDate`), now).then(
+          successCallback()
+        ).catch(() => {})
+      ).catch(() => {});
+    },
+
+    clearGame: (gameId, successCallback) => {
+      set(ref(db, `games/${gameId}`), null).then(
         successCallback()
       ).catch(() => {});
     },
 
-    useGameState: (gameId) => {
-      const [gameState, setGameState] = useState({status: "unknown"});
+    useGameSettings: (gameId) => {
+      const [gameSettings, setGameSettings] = useState({status: "unknown"});
 
       useEffect(() => {
-        onValue(ref(db, `games/${gameId}/state`), (snapshot) => {
-          const state = snapshot.val() || {
+        onValue(ref(db, `games/${gameId}/settings`), (snapshot) => {
+          const settings = snapshot.val() || {
             status: "unknown",
+            duration: 3600*1000,
+            initialPingInterval: 5*60*1000,
+            finalPingInterval: 2*60*1000,
             startDate: 0,
             endDate: 0,
+            foundDate: 0,
             nextPingDate: 0
           }
-          setGameState(state);
+          setGameSettings(settings);
         });
       }, [gameId]);
-      return gameState;
+      return gameSettings;
+    },
+
+    setDuration: (gameId, duration, successCallback) => {
+      set(ref(db, `games/${gameId}/settings/duration`), duration).then(
+        successCallback()
+      ).catch(() => {});
+    },
+
+    setInitialPingInterval: (gameId, value, successCallback) => {
+      set(ref(db, `games/${gameId}/settings/initialPingInterval`), value).then(
+        successCallback()
+      ).catch(() => {});
+    },
+
+    setFinalPingInterval: (gameId, value, successCallback) => {
+      set(ref(db, `games/${gameId}/settings/finalPingInterval`), value).then(
+        successCallback()
+      ).catch(() => {});
     },
 
     setNextPingDate: (gameId) => {
-      const dt = 10*1000
-      get(ref(db, `games/${gameId}/state`)).then((snapshot) => {
+
+      get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
         if (snapshot.exists()) {
-          const state = snapshot.val();
-          const now = new Date().getTime();
-          for(var i=0 ; i < 1000; i++){
-            if(state.startDate + i*dt > now){
-              set(ref(db, `games/${gameId}/state/nextPingDate`), state.startDate + i*dt)
-              break;
+          const settings = snapshot.val();
+          if(settings.status === "active") {
+            const now = new Date().getTime();
+            const timeSinceStart = now - settings.startDate;
+            let dt = 0;
+            while(dt <= settings.duration){
+              if(dt < 0.8 * settings.duration) {
+                dt += settings.initialPingInterval;
+              }
+              else {
+                dt += settings.finalPingInterval;
+              }
+
+              if(dt > timeSinceStart){
+                set(ref(db, `games/${gameId}/settings/nextPingDate`), settings.startDate + dt)
+                break;
+              }
             }
           }
-        } else {
-          console.log("Could not find last state");
+          else{
+            console.log("Game is not active");
+          }
+        }
+        else {
+          console.log("Could not find settings");
         }
       }).catch((error) => {
         console.error(error);

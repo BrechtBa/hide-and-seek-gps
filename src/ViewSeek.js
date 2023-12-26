@@ -1,5 +1,5 @@
 import React from 'react'
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { getRepository } from './repository/firebase.js';
 import Timer from './components/Timer.js';
@@ -8,23 +8,27 @@ import MyMap from './components/Map.js';
 
 export default function ViewSeek() {
   const params = useParams();
+  const navigate= useNavigate();
   const gameId = params.gameId;
 
   const repository = getRepository();
 
-  const gameState = repository.useGameState(gameId);
+  const gameSettings = repository.useGameSettings(gameId);
   const lastLocation = repository.useLastLocation(gameId);
 
+  if(gameSettings.status === "unknown"){
+    navigate("/")
+  }
 
   const isWaiting = () => {
-    return gameState.status === "waiting"
+    return gameSettings.status === "waiting"
   }
   const isActive = () => {
-    console.log(gameState)
-    return gameState.status === "active"
+    console.log(gameSettings)
+    return gameSettings.status === "active"
   }
   const isFinished = () => {
-    return gameState.status === "finished"
+    return gameSettings.status === "finished"
   }
 
   const displayCoordinates = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
@@ -57,7 +61,7 @@ export default function ViewSeek() {
       {isActive() && (
         <div style={{width: "100%"}}>
           <div>
-            <Timer endDate={gameState.endDate}/>
+            <Timer endDate={gameSettings.endDate}/>
           </div>
 
           <div style={{width: "100%"}}>

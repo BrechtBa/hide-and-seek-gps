@@ -20,6 +20,12 @@ export default function ViewSeek() {
     navigate("/")
   }
 
+//  useEffect(() => {
+//    if(gameSettings.status === "unknown"){
+//      navigate("/")
+//    }
+//  }, [navigate, gameSettings])
+
   const isWaiting = () => {
     return gameSettings.status === "waiting"
   }

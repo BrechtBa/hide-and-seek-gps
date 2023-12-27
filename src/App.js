@@ -6,7 +6,6 @@ import ViewJoin from "./ViewJoin.js"
 import ViewHide from "./ViewHide.js"
 import ViewSeek from "./ViewSeek.js"
 
-
 function App() {
   return (
     <div className="App">

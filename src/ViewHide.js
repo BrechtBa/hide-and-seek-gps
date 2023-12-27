@@ -7,11 +7,15 @@ import TextField from '@mui/material/TextField';
 import { getRepository } from './repository/firebase.js';
 import Timer from './components/Timer.js';
 import Time from './components/Time.js';
+import useNoSleep from './components/NoSleep.js';
 
 
 export default function ViewHide() {
+  useNoSleep();
+
   const params = useParams();
   const navigate = useNavigate();
+
   const gameId = params.gameId;
 
   const repository = getRepository();
@@ -59,6 +63,7 @@ export default function ViewHide() {
 
     }, 1000);
     return () => clearTimeout(timer);
+  // eslint-disable-next-line
   }, [gameId, gameSettings]);
 
 

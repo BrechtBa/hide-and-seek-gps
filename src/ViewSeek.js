@@ -2,11 +2,18 @@ import React from 'react'
 import { useParams, useNavigate } from "react-router-dom";
 
 import { getRepository } from './repository/firebase.js';
+
+import Button from '@mui/material/Button';
+
 import Timer from './components/Timer.js';
+import Time from './components/Time.js';
 import MyMap from './components/Map.js';
+import useNoSleep from './components/NoSleep.js';
 
 
 export default function ViewSeek() {
+  useNoSleep();
+
   const params = useParams();
   const navigate= useNavigate();
   const gameId = params.gameId;
@@ -75,8 +82,31 @@ export default function ViewSeek() {
           </div>
 
           <div>{displayCoordinates(lastLocation)}</div>
+
+
         </div>
       )}
+
+      {(isFinished()) && (
+        <div>
+          <div className="Section">
+            Finished
+          </div>
+
+          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <Time time={gameSettings.foundDate - gameSettings.startDate}/>
+          </div>
+
+        </div>
+      )}
+
+
+      <div className="Section">
+        <div>
+          <Button onClick={() => navigate("/")}>Leave</Button>
+        </div>
+      </div>
+
     </div>
   )
 

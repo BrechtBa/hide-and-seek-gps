@@ -10,6 +10,7 @@ import { getRepository } from './repository/firebase.js';
 import Timer from './components/Timer.js';
 import Time from './components/Time.js';
 import useNoSleep from './components/NoSleep.js';
+import getLocation from './components/location.js';
 
 
 export default function ViewHide() {
@@ -26,26 +27,13 @@ export default function ViewHide() {
 
   const setLastLocation = () => {
     console.log("ping")
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const timestamp = new Date().getTime();
+    getLocation((position) => {
+      const { latitude, longitude } = position;
+      const timestamp = new Date().getTime();
 
-          console.log("publishing last location: ", {timestamp, latitude, longitude})
-          repository.setLastLocation(
-            gameId,
-            {timestamp, latitude, longitude},
-            () => {}
-          )
-        },
-        (error) => {
-          console.error("Error get user location: ", error);
-        }
-      );
-    } else {
-      console.log("Geolocation is not supported by this browser");
-    }
+      console.log("publishing last location: ", {timestamp, latitude, longitude})
+      repository.setLastLocation(gameId, {timestamp, latitude, longitude}, () => {});
+    });
   };
 
   useEffect(() => {

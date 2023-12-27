@@ -72,7 +72,7 @@ export default function ViewSeek() {
 
   const getCoordinates = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
     if(loc === null) {
-      return [0, 0];
+      return [51, 5];
     }
     else{
       return [loc.latitude, loc.longitude]

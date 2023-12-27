@@ -44,7 +44,6 @@ function makeFirebaseRepository(db, auth) {
         lastLocation: "test"
       }
       const newSeekerRef = push(ref(db, `games/${gameId}/seekers`));
-      console.log(newSeekerRef);
 
       set(newSeekerRef, seeker).then(
         successCallback(gameId)
@@ -66,7 +65,7 @@ function makeFirebaseRepository(db, auth) {
             endDate: endDate.getTime(),
             nextPingDate: nextPingDate.getTime()
           }
-          console.log(newSettings);
+
           set(ref(db, `games/${gameId}/settings`), newSettings).then(
             successCallback()
           ).catch(() => {});

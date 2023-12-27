@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
+import QRCode from "react-qr-code";
+
 import { getRepository } from './repository/firebase.js';
 import Timer from './components/Timer.js';
 import Time from './components/Time.js';
@@ -92,11 +94,19 @@ export default function ViewHide() {
   return (
     <div>
       <h1>Hide</h1>
-      <div className="Section">Game Id: {gameId}</div>
+      <div className="Section">
+        Game Id: {gameId}
+      </div>
 
       {isWaiting() && (
         <div>
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <h3>Scan to join</h3>
+            <QRCode value={gameId} />
+          </div>
+
+          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <h3>Settings</h3>
             <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
               <TextField label="Duration (min)" value={gameSettings.duration/1000/60}
                          onChange={(e) => repository.setDuration(gameId, e.target.value*60*1000, () => {})} />
@@ -105,6 +115,7 @@ export default function ViewHide() {
               <TextField label="FinalPingInterval (min)" value={gameSettings.finalPingInterval/1000/60}
                                                  onChange={(e) => repository.setFinalPingInterval(gameId, e.target.value*60*1000, () => {})} />
               <Button onClick={() => startGame()}>Start</Button>
+              <Button onClick={() => navigate("/")}>Back</Button>
             </div>
           </div>
         </div>
@@ -113,16 +124,19 @@ export default function ViewHide() {
       {isActive() && (
         <div>
           <div className="Section">
+            <div>Remaining time:</div>
             <Timer endDate={gameSettings.endDate}/>
           </div>
 
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <div>Time to next ping:</div>
             <Timer endDate={gameSettings.nextPingDate}/>
+          </div>
 
+          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
             <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
               <Button onClick={() => endGame()}>Found</Button>
             </div>
-
           </div>
         </div>
       )}

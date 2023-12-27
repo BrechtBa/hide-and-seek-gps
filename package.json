@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@yudiel/react-qr-scanner": "^1.2.4",
     "firebase": "^10.7.1",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
@@ -16,6 +17,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",
+    "react-qr-code": "^2.0.12",
     "react-router-dom": "^6.21.1",
     "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"

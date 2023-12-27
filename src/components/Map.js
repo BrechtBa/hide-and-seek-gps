@@ -6,7 +6,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 
 export default function MyMap(props) {
   const marker = props.marker;
-
+  console.log(marker)
   return (
     <div style={{width: "100%"}}>
       <MapContainer center={marker} zoom={13} scrollWheelZoom={false} style={{height: "500px"}}>

@@ -92,12 +92,12 @@ export default function ViewSeek() {
     return gameSettings.status === "finished"
   }
 
-  const getLastLocationMarker = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
+  const getLastLocationMarkers = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
     if(loc === null) {
-      return [51, 5];
+      return [];
     }
     else{
-      return {name: "Hider", latitude: loc.latitude, longitude: loc.longitude}
+      return [{name: "Hider", latitude: loc.latitude, longitude: loc.longitude}]
     }
   }
 
@@ -125,7 +125,7 @@ export default function ViewSeek() {
           </div>
 
           <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
-            <MyMap markers={[getLastLocationMarker(lastLocation)]} />
+            <MyMap markers={getLastLocationMarkers(lastLocation)} />
           </div>
 
           <div className="Section">

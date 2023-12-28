@@ -24,7 +24,7 @@ export default function MyMap(props) {
 
   return (
     <div style={{width: "95%"}}>
-      <MapContainer center={myPosition} zoom={13} scrollWheelZoom={false} style={{height: "500px"}}>
+      <MapContainer center={myPosition} zoom={13} scrollWheelZoom={false} style={{height: "400px"}}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

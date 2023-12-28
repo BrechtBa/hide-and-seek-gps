@@ -2,18 +2,30 @@ import {useState, useEffect} from 'react'
 
 import { initializeApp } from "firebase/app";
 //import { getMessaging } from "firebase/messaging";
-import { getDatabase, ref, onValue, set, push, get} from "firebase/database";
+import { getDatabase, ref, onValue, set, get} from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 
 function generateString(length) {
-    var result           = '';
-    var characters       = 'abcdefghijklmnopqrstuvwxyz';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
+    let result             = '';
+    const characters       = 'abcdefghijklmnopqrstuvwxyz';
+    const charactersLength = characters.length;
+    for ( let i = 0; i < length; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+
+
+function getSeekerId() {
+  let seekerId = window.localStorage.getItem("seekerId");
+
+  console.log(seekerId)
+  if(seekerId === null){
+    seekerId = generateString(16);
+    window.localStorage.setItem("seekerId", seekerId);
+  }
+  return seekerId
 }
 
 
@@ -28,10 +40,12 @@ function makeFirebaseRepository(db, auth) {
           duration: 3600*1000,
           initialPingInterval: 5*60*1000,
           finalPingInterval: 2*60*1000,
+          seekerInitialPingInterval: 10*60*1000,
           startDate: 0,
           endDate: 0,
           foundDate: 0,
-          nextPingDate: 0
+          nextPingDate: 0,
+          nextSeekerPingDate: 0
         }
       }
       set(ref(db, `games/${gameId}`), game).then(
@@ -40,14 +54,25 @@ function makeFirebaseRepository(db, auth) {
     },
 
     joinGame: (gameId, successCallback) => {
+      const seekerId = getSeekerId();
       const seeker = {
-        lastLocation: "test"
-      }
-      const newSeekerRef = push(ref(db, `games/${gameId}/seekers`));
+        name: "seeker"
+      };
+      get(ref(db, `games/${gameId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          set(ref(db, `games/${gameId}/seekers/${seekerId}`), seeker).then(
+            successCallback()
+          ).catch(() => {});
+        }
+      });
+    },
 
-      set(newSeekerRef, seeker).then(
-        successCallback(gameId)
-      ).catch(() => {});
+    checkGameExists: (gameId, successCallback) => {
+      get(ref(db, `games/${gameId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          successCallback();
+        }
+      });
     },
 
     startGame: (gameId, successCallback) => {
@@ -57,13 +82,16 @@ function makeFirebaseRepository(db, auth) {
           let settings = snapshot.val();
           const startDate = new Date();
           const endDate = new Date(startDate.getTime() + settings.duration);
-          const nextPingDate = startDate;
+          const nextPingDate = new Date(startDate.getTime() + 5);
+          const nextSeekerPingDate = new Date(startDate.getTime() + 5);
+
           const newSettings = {
             ...settings,
             status: "active",
             startDate: startDate.getTime(),
             endDate: endDate.getTime(),
-            nextPingDate: nextPingDate.getTime()
+            nextPingDate: nextPingDate.getTime(),
+            nextSeekerPingDate: nextSeekerPingDate.getTime(),
           }
 
           set(ref(db, `games/${gameId}/settings`), newSettings).then(
@@ -101,10 +129,12 @@ function makeFirebaseRepository(db, auth) {
             duration: 3600*1000,
             initialPingInterval: 5*60*1000,
             finalPingInterval: 2*60*1000,
+            seekerInitialPingInterval: 10*60*1000,
             startDate: 0,
             endDate: 0,
             foundDate: 0,
-            nextPingDate: 0
+            nextPingDate: 0,
+            nextSeekerPingDate: 0
           }
           setGameSettings(settings);
         });
@@ -130,8 +160,13 @@ function makeFirebaseRepository(db, auth) {
       ).catch(() => {});
     },
 
-    setNextPingDate: (gameId) => {
+    setSeekerInitialPingInterval: (gameId, value, successCallback) => {
+      set(ref(db, `games/${gameId}/settings/seekerInitialPingInterval`), value).then(
+        successCallback()
+      ).catch(() => {});
+    },
 
+    setNextPingDate: (gameId) => {
       get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
         if (snapshot.exists()) {
           const settings = snapshot.val();
@@ -163,7 +198,35 @@ function makeFirebaseRepository(db, auth) {
       }).catch((error) => {
         console.error(error);
       });
+    },
 
+    setNextSeekerPingDate: (gameId) => {
+      get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const settings = snapshot.val();
+          if(settings.status === "active") {
+            const now = new Date().getTime();
+            const timeSinceStart = now - settings.startDate;
+            let dt = 0;
+            while(dt <= settings.duration){
+              dt += settings.seekerInitialPingInterval;
+
+              if(dt > timeSinceStart){
+                set(ref(db, `games/${gameId}/settings/nextSeekerPingDate`), settings.startDate + dt)
+                break;
+              }
+            }
+          }
+          else{
+            console.log("Game is not active");
+          }
+        }
+        else {
+          console.log("Could not find settings");
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
     },
 
     setLastLocation: (gameId, location, successCallback) => {
@@ -181,7 +244,26 @@ function makeFirebaseRepository(db, auth) {
         });
       }, [gameId]);
       return location;
+    },
+
+    setSeekerLastLocation: (gameId, location, successCallback)  =>{
+      const seekerId = getSeekerId();
+      set(ref(db, `games/${gameId}/seekers/${seekerId}/lastLocation`), location).then(
+        successCallback()
+      ).catch(() => {});
+    },
+
+    useSeekers: (gameId) => {
+      const [seekers, setSeekers] = useState([]);
+      useEffect(() => {
+        onValue(ref(db, `games/${gameId}/seekers`), (snapshot) => {
+          const val = snapshot.val() || {};
+          setSeekers(Object.keys(val).map((key) => val[key]));
+        });
+      }, [gameId]);
+      return seekers;
     }
+
   }
 }
 

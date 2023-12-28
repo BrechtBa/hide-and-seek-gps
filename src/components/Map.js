@@ -8,12 +8,8 @@ import getLocation from './location.js';
 
 
 export default function MyMap(props) {
-  const marker = props.marker;
+  const markers = props.markers;
   const [myPosition, setMyPosition] = useState([51, 5]);
-
-  console.log(marker)
-
-
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,23 +23,26 @@ export default function MyMap(props) {
 
 
   return (
-    <div style={{width: "100%"}}>
-      <MapContainer center={marker} zoom={13} scrollWheelZoom={false} style={{height: "500px"}}>
+    <div style={{width: "95%"}}>
+      <MapContainer center={myPosition} zoom={13} scrollWheelZoom={false} style={{height: "500px"}}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={marker}>
-          <Popup>
-            Last known location
-          </Popup>
-        </Marker>
 
         <Circle center={myPosition} radius={20}>
           <Popup>
             My position
           </Popup>
         </Circle>
+
+        { markers.map((marker, key) => (
+          <Marker key={key} position={[marker.latitude, marker.longitude]}>
+            <Popup>
+              {marker.name}
+            </Popup>
+          </Marker>
+        ))}
 
       </MapContainer>
     </div>

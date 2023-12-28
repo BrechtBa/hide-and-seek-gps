@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import { useParams, useNavigate } from "react-router-dom";
 
 import { getRepository } from './repository/firebase.js';
@@ -9,6 +9,7 @@ import Timer from './components/Timer.js';
 import Time from './components/Time.js';
 import MyMap from './components/Map.js';
 import useNoSleep from './components/NoSleep.js';
+import getLocation from './components/location.js';
 
 
 function DisplayLocation(props) {
@@ -26,10 +27,9 @@ function DisplayLocation(props) {
   }
   else {
     return (
-      <div style={{display: "flex", flexDirection: "row", justifyContent: "center", gap: "1em"}}>
+      <div>
         <div>{displayTimestamp(location.timestamp)}</div>
-        <div>{location.latitude}</div>
-        <div>{location.longitude}</div>
+        <div>{location.latitude}, {location.longitude}</div>
       </div>
     );
   }
@@ -53,11 +53,33 @@ export default function ViewSeek() {
     navigate("/")
   }
 
-//  useEffect(() => {
-//    if(gameSettings.status === "unknown"){
-//      navigate("/")
-//    }
-//  }, [navigate, gameSettings])
+  const setLastLocation = () => {
+    console.log("ping")
+    getLocation((position) => {
+      const { latitude, longitude } = position;
+      const timestamp = new Date().getTime();
+
+      console.log("publishing last location: ", {timestamp, latitude, longitude})
+      repository.setSeekerLastLocation(gameId, {timestamp, latitude, longitude}, () => {});
+    });
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+
+      if(gameSettings.status === "active"){
+        if(now >= gameSettings.nextSeekerPingDate){
+          repository.setNextSeekerPingDate(gameId);
+          setLastLocation();
+        }
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line
+  }, [gameId, gameSettings]);
+
+
 
   const isWaiting = () => {
     return gameSettings.status === "waiting"
@@ -70,19 +92,19 @@ export default function ViewSeek() {
     return gameSettings.status === "finished"
   }
 
-  const getCoordinates = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
+  const getLastLocationMarker = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
     if(loc === null) {
       return [51, 5];
     }
     else{
-      return [loc.latitude, loc.longitude]
+      return {name: "Hider", latitude: loc.latitude, longitude: loc.longitude}
     }
   }
 
   return (
     <div>
       <h1>Seek</h1>
-      <div className="Section">Game Id: {gameId}</div>
+      <div className="Section">Game ID: {gameId}</div>
 
       {isWaiting() && (
         <div className="Section">
@@ -93,11 +115,17 @@ export default function ViewSeek() {
       {isActive() && (
         <div style={{width: "100%"}}>
           <div className="Section">
+            <div>Remaining time:</div>
             <Timer endDate={gameSettings.endDate}/>
           </div>
 
-          <div className="Section" style={{width: "100%"}}>
-            <MyMap marker={getCoordinates(lastLocation)} />
+          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <div>Time to next ping:</div>
+            <Timer endDate={gameSettings.nextPingDate}/>
+          </div>
+
+          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
+            <MyMap markers={[getLastLocationMarker(lastLocation)]} />
           </div>
 
           <div className="Section">

@@ -27,10 +27,10 @@ export default function MyMap(props) {
       <MapContainer center={myPosition} zoom={13} scrollWheelZoom={false} style={{height: "400px"}}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
         />
 
-        <Circle center={myPosition} radius={20}>
+        <Circle center={myPosition} radius={10}>
           <Popup>
             My position
           </Popup>

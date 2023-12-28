@@ -109,10 +109,12 @@ export default function ViewHide() {
             <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
               <TextField label="Duration (min)" value={gameSettings.duration/1000/60}
                          onChange={(e) => repository.setDuration(gameId, e.target.value*60*1000, () => {})} />
-              <TextField label="InitialPingInterval (min)" value={gameSettings.initialPingInterval/1000/60}
+              <TextField label="Initial Ping Interval (min)" value={gameSettings.initialPingInterval/1000/60}
                                      onChange={(e) => repository.setInitialPingInterval(gameId, e.target.value*60*1000, () => {})} />
-              <TextField label="FinalPingInterval (min)" value={gameSettings.finalPingInterval/1000/60}
+              <TextField label="Final Ping Interval (min)" value={gameSettings.finalPingInterval/1000/60}
                                                  onChange={(e) => repository.setFinalPingInterval(gameId, e.target.value*60*1000, () => {})} />
+               <TextField label="Seeker Ping Interval (min)" value={gameSettings.seekerInitialPingInterval/1000/60}
+                                                                    onChange={(e) => repository.setSeekerInitialPingInterval(gameId, e.target.value*60*1000, () => {})} />
               <Button onClick={() => startGame()}>Start</Button>
               <Button onClick={() => clearGame()}>Back</Button>
             </div>
@@ -131,17 +133,8 @@ export default function ViewHide() {
             <div>Time to next ping:</div>
             <Timer endDate={gameSettings.nextPingDate}/>
           </div>
-
-          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
-            <MyMap markers={getSeekerMarkers(seekers)} />
-          </div>
-
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
-              <Button onClick={() => endGame()}>Found</Button>
-            </div>
-          </div>
         </div>
+
       )}
 
       {(isFinished()) && (
@@ -152,15 +145,37 @@ export default function ViewHide() {
 
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
             <Time time={gameSettings.foundDate - gameSettings.startDate}/>
-
-            <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
-              <Button onClick={() => clearGame()}>Clear</Button>
-            </div>
-
           </div>
 
         </div>
       )}
+
+      {(isActive() || isFinished()) && (
+        <div>
+          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
+            <MyMap markers={getSeekerMarkers(seekers)} />
+          </div>
+        </div>
+      )}
+
+      {(isActive()) && (
+        <div>
+          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
+              <Button onClick={() => endGame()}>Found</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(isFinished()) && (
+        <div>
+          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <Button onClick={() => clearGame()}>Clear</Button>
+          </div>
+        </div>
+      )}
+
 
     </div>
   )

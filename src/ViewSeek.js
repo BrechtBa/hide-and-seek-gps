@@ -59,7 +59,6 @@ export default function ViewSeek() {
       const { latitude, longitude } = position;
       const timestamp = new Date().getTime();
 
-      console.log("publishing last location: ", {timestamp, latitude, longitude})
       repository.setSeekerLastLocation(gameId, {timestamp, latitude, longitude}, () => {});
     });
   };
@@ -85,7 +84,6 @@ export default function ViewSeek() {
     return gameSettings.status === "waiting"
   }
   const isActive = () => {
-    console.log(gameSettings)
     return gameSettings.status === "active"
   }
   const isFinished = () => {
@@ -123,15 +121,6 @@ export default function ViewSeek() {
             <div>Time to next ping:</div>
             <Timer endDate={gameSettings.nextPingDate}/>
           </div>
-
-          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
-            <MyMap markers={getLastLocationMarkers(lastLocation)} />
-          </div>
-
-          <div className="Section">
-            <DisplayLocation location={lastLocation} />
-          </div>
-
         </div>
       )}
 
@@ -148,6 +137,18 @@ export default function ViewSeek() {
         </div>
       )}
 
+      {(isActive() || isFinished()) && (
+        <div>
+          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
+            <MyMap markers={getLastLocationMarkers(lastLocation)} />
+          </div>
+
+          <div className="Section">
+            Last known location:
+            <DisplayLocation location={lastLocation} />
+          </div>
+        </div>
+      )}
 
       <div className="Section">
         <div>

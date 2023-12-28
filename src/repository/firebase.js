@@ -41,6 +41,8 @@ function makeFirebaseRepository(db, auth) {
           initialPingInterval: 5*60*1000,
           finalPingInterval: 2*60*1000,
           seekerInitialPingInterval: 10*60*1000,
+          pingBlockInterval: 5*60*1000,
+          remainingPingBlocks: 1,
           startDate: 0,
           endDate: 0,
           foundDate: 0,
@@ -130,11 +132,14 @@ function makeFirebaseRepository(db, auth) {
             initialPingInterval: 5*60*1000,
             finalPingInterval: 2*60*1000,
             seekerInitialPingInterval: 10*60*1000,
+            pingBlockInterval: 5*60*1000,
+            remainingPingBlocks: 1,
             startDate: 0,
             endDate: 0,
             foundDate: 0,
             nextPingDate: 0,
-            nextSeekerPingDate: 0
+            nextSeekerPingDate: 0,
+
           }
           setGameSettings(settings);
         });
@@ -162,6 +167,12 @@ function makeFirebaseRepository(db, auth) {
 
     setSeekerInitialPingInterval: (gameId, value, successCallback) => {
       set(ref(db, `games/${gameId}/settings/seekerInitialPingInterval`), value).then(
+        successCallback()
+      ).catch(() => {});
+    },
+
+    setPingBlockInterval: (gameId, value, successCallback) => {
+      set(ref(db, `games/${gameId}/settings/pingBlockInterval`), value).then(
         successCallback()
       ).catch(() => {});
     },
@@ -228,6 +239,32 @@ function makeFirebaseRepository(db, auth) {
         console.error(error);
       });
     },
+
+    setPingBlock: (gameId) => {
+      get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const settings = snapshot.val();
+          if(settings.status === "active") {
+            if(settings.remainingPingBlocks > 0) {
+              set(ref(db, `games/${gameId}/settings/remainingPingBlocks`), settings.remainingPingBlocks - 1);
+              set(ref(db, `games/${gameId}/settings/nextPingDate`), settings.nextPingDate + settings.pingBlockInterval);
+            }
+            else{
+              console.log("No more ping blocks available");
+            }
+          }
+          else{
+            console.log("Game is not active");
+          }
+        }
+        else {
+          console.log("Could not find settings");
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+    },
+
 
     setLastLocation: (gameId, location, successCallback) => {
       set(ref(db, `games/${gameId}/lastLocation`), location).then(

@@ -61,16 +61,21 @@ export default function ViewHide() {
 
 
   const startGame = () => {
-    repository.startGame(gameId, () => {})
+    repository.startGame(gameId, () => {});
   }
 
   const endGame = () => {
-    repository.endGame(gameId, () => {})
+    repository.endGame(gameId, () => {});
   }
 
   const clearGame = () => {
-    repository.clearGame(gameId, () => {navigate("/")})
+    repository.clearGame(gameId, () => {navigate("/")});
   }
+
+  const pingBlock = () => {
+    repository.setPingBlock(gameId, () => {});
+  }
+
 
   const isWaiting = () => {
     return gameSettings.status === "waiting"
@@ -111,11 +116,13 @@ export default function ViewHide() {
               <TextField label="Duration (min)" value={gameSettings.duration/1000/60}
                          onChange={(e) => repository.setDuration(gameId, e.target.value*60*1000, () => {})} />
               <TextField label="Initial Ping Interval (min)" value={gameSettings.initialPingInterval/1000/60}
-                                     onChange={(e) => repository.setInitialPingInterval(gameId, e.target.value*60*1000, () => {})} />
+                         onChange={(e) => repository.setInitialPingInterval(gameId, e.target.value*60*1000, () => {})} />
               <TextField label="Final Ping Interval (min)" value={gameSettings.finalPingInterval/1000/60}
-                                                 onChange={(e) => repository.setFinalPingInterval(gameId, e.target.value*60*1000, () => {})} />
-               <TextField label="Seeker Ping Interval (min)" value={gameSettings.seekerInitialPingInterval/1000/60}
-                                                                    onChange={(e) => repository.setSeekerInitialPingInterval(gameId, e.target.value*60*1000, () => {})} />
+                         onChange={(e) => repository.setFinalPingInterval(gameId, e.target.value*60*1000, () => {})} />
+              <TextField label="Ping block Interval (min)" value={gameSettings.pingBlockInterval/1000/60}
+                         onChange={(e) => repository.setPingBlockInterval(gameId, e.target.value*60*1000, () => {})} />
+              <TextField label="Seeker Ping Interval (min)" value={gameSettings.seekerInitialPingInterval/1000/60}
+                         onChange={(e) => repository.setSeekerInitialPingInterval(gameId, e.target.value*60*1000, () => {})} />
               <Button onClick={() => startGame()}>Start</Button>
               <Button onClick={() => clearGame()}>Back</Button>
             </div>
@@ -133,6 +140,7 @@ export default function ViewHide() {
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
             <div>Time to next ping:</div>
             <Timer endDate={gameSettings.nextPingDate}/>
+            <Button onClick={() => pingBlock()} disabled={gameSettings.remainingPingBlocks <= 0}>Delay next Ping</Button>
           </div>
         </div>
 

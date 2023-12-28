@@ -12,6 +12,7 @@ import Time from './components/Time.js';
 import MyMap from './components/Map.js';
 import useNoSleep from './components/NoSleep.js';
 import getLocation from './components/location.js';
+import GameId from './components/GameId.js';
 
 
 export default function ViewHide() {
@@ -94,7 +95,7 @@ export default function ViewHide() {
     <div>
       <h1>Hide</h1>
       <div className="Section">
-        Game ID: {gameId}
+        <GameId gameId={gameId}/>
       </div>
 
       {isWaiting() && (

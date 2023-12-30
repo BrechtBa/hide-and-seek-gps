@@ -6,7 +6,7 @@ import TextField from '@mui/material/TextField';
 
 import QRCode from "react-qr-code";
 
-import { getRepository } from './repository/firebase.js';
+import { getRepository, Status } from './repository/firebase.js';
 import Timer from './components/Timer.js';
 import Time from './components/Time.js';
 import MyMap from './components/Map.js';
@@ -43,7 +43,7 @@ export default function ViewHide() {
     const timer = setInterval(() => {
       const now = new Date().getTime();
 
-      if(gameSettings.status === "active"){
+      if(gameSettings.status === Status.Active){
         if(now >= gameSettings.nextPingDate){
           repository.setNextPingDate(gameId);
           setLastLocation();
@@ -85,13 +85,13 @@ export default function ViewHide() {
 
 
   const isWaiting = () => {
-    return gameSettings.status === "waiting"
+    return gameSettings.status === Status.Waiting;
   }
   const isActive = () => {
-    return gameSettings.status === "active"
+    return gameSettings.status === Status.Active;
   }
   const isFinished = () => {
-    return gameSettings.status === "finished"
+    return gameSettings.status === Status.Finished;
   }
   const getSeekerMarkers = (seekers) => {
     let markers = [];

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react'
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 
-import { getRepository } from './repository/firebase.js';
+import { getRepository, Status } from './repository/firebase.js';
 
 import Button from '@mui/material/Button';
 
@@ -49,10 +49,6 @@ export default function ViewSeek() {
   const gameSettings = repository.useGameSettings(gameId);
   const lastLocation = repository.useLastLocation(gameId);
 
-  if(gameSettings.status === "unknown"){
-    navigate("/")
-  }
-
   const setLastLocation = () => {
     console.log("ping")
     getLocation((position) => {
@@ -67,12 +63,20 @@ export default function ViewSeek() {
     const timer = setInterval(() => {
       const now = new Date().getTime();
 
-      if(gameSettings.status === "active"){
+      if(gameSettings.status === Status.Active){
         if(now >= gameSettings.nextSeekerPingDate){
           repository.setNextSeekerPingDate(gameId);
           setLastLocation();
         }
       }
+
+      if(gameSettings.status === Status.Finished){
+        if(now >= gameSettings.nextPingDate){
+          repository.setNextSeekerPingDate(gameId);
+          setLastLocation();
+        }
+      }
+
     }, 1000);
     return () => clearTimeout(timer);
   // eslint-disable-next-line
@@ -81,13 +85,13 @@ export default function ViewSeek() {
 
 
   const isWaiting = () => {
-    return gameSettings.status === "waiting"
+    return gameSettings.status === Status.Waiting;
   }
   const isActive = () => {
-    return gameSettings.status === "active"
+    return gameSettings.status === Status.Active;
   }
   const isFinished = () => {
-    return gameSettings.status === "finished"
+    return gameSettings.status === Status.Finished;
   }
 
   const getLastLocationMarkers = (loc: {timestamp: number, latitude: number, longitude: number} | null) => {
@@ -158,6 +162,9 @@ export default function ViewSeek() {
         </div>
       </div>
 
+      {gameSettings.state === "unknown" && (
+        <Navigate to="/" />
+      )}
     </div>
   )
 

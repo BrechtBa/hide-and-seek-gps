@@ -1,14 +1,20 @@
 import {useState, useEffect} from 'react'
 
 import { initializeApp } from "firebase/app";
-//import { getMessaging } from "firebase/messaging";
 import { getDatabase, ref, onValue, set, get} from "firebase/database";
 import { getAuth } from "firebase/auth";
 
+export const Status = {
+  Unknown: "unknown",
+  Waiting: "waiting",
+  Active: "active",
+  Finished: "finished"
+}
+
 
 function generateString(length) {
-    let result             = '';
-    const characters       = 'abcdefghijklmnopqrstuvwxyz';
+    let result             = "";
+    const characters       = "abcdefghijklmnopqrstuvwxyz";
     const charactersLength = characters.length;
     for ( let i = 0; i < length; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -20,7 +26,6 @@ function generateString(length) {
 function getSeekerId() {
   let seekerId = window.localStorage.getItem("seekerId");
 
-  console.log(seekerId)
   if(seekerId === null){
     seekerId = generateString(16);
     window.localStorage.setItem("seekerId", seekerId);
@@ -30,7 +35,7 @@ function getSeekerId() {
 
 
 const defaultSettings = {
-  status: "unknown",
+  status: Status.Unknown,
   duration: 1800*1000,
   initialPingInterval: 3*60*1000,
   finalPingInterval: 1*60*1000,
@@ -52,7 +57,7 @@ function makeFirebaseRepository(db, auth) {
       const game = {
         settings: {
           ...defaultSettings,
-          status: "waiting",
+          status: Status.Waiting,
         }
       }
       set(ref(db, `games/${gameId}`), game).then(
@@ -94,7 +99,7 @@ function makeFirebaseRepository(db, auth) {
 
           const newSettings = {
             ...settings,
-            status: "active",
+            status: Status.Active,
             startDate: startDate.getTime(),
             endDate: endDate.getTime(),
             nextPingDate: nextPingDate.getTime(),
@@ -113,7 +118,7 @@ function makeFirebaseRepository(db, auth) {
 
     setFound: (gameId, successCallback) => {
       const now = new Date().getTime();
-      set(ref(db, `games/${gameId}/settings/status`), "finished").then(
+      set(ref(db, `games/${gameId}/settings/status`), Status.Finished).then(
         set(ref(db, `games/${gameId}/settings/foundDate`), now).then(
           successCallback()
         ).catch(() => {})
@@ -121,7 +126,7 @@ function makeFirebaseRepository(db, auth) {
     },
 
     endGame: (gameId, successCallback) => {
-      set(ref(db, `games/${gameId}/settings/status`), "finished").then(
+      set(ref(db, `games/${gameId}/settings/status`), Status.Finished).then(
         successCallback()
       ).catch(() => {});
     },
@@ -133,7 +138,7 @@ function makeFirebaseRepository(db, auth) {
     },
 
     useGameSettings: (gameId) => {
-      const [gameSettings, setGameSettings] = useState({status: "unknown"});
+      const [gameSettings, setGameSettings] = useState({status: Status.Unknown});
 
       useEffect(() => {
         onValue(ref(db, `games/${gameId}/settings`), (snapshot) => {
@@ -178,7 +183,7 @@ function makeFirebaseRepository(db, auth) {
       get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
         if (snapshot.exists()) {
           const settings = snapshot.val();
-          if(settings.status === "active") {
+          if(settings.status === Status.Active) {
             const now = new Date().getTime();
             const timeSinceStart = now - settings.startDate;
             let dt = 0;
@@ -197,7 +202,10 @@ function makeFirebaseRepository(db, auth) {
             }
           }
           else {
-            set(ref(db, `games/${gameId}/settings/nextPingDate`), settings.nextPingDate + 30*1000)
+            const now = new Date().getTime();
+            if(settings.nextPingDate <= now){
+              set(ref(db, `games/${gameId}/settings/nextPingDate`), settings.nextPingDate + 30*1000)
+            }
           }
         }
         else {
@@ -212,7 +220,7 @@ function makeFirebaseRepository(db, auth) {
       get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
         if (snapshot.exists()) {
           const settings = snapshot.val();
-          if(settings.status === "active") {
+          if(settings.status === Status.Active) {
             const now = new Date().getTime();
             const timeSinceStart = now - settings.startDate;
             let dt = 0;
@@ -225,8 +233,11 @@ function makeFirebaseRepository(db, auth) {
               }
             }
           }
-          else{
-            console.log("Game is not active");
+          else {
+            const now = new Date().getTime();
+            if(settings.nextSeekerPingDate <= now){
+              set(ref(db, `games/${gameId}/settings/nextSeekerPingDate`), settings.nextSeekerPingDate + 30*1000)
+            }
           }
         }
         else {
@@ -241,7 +252,7 @@ function makeFirebaseRepository(db, auth) {
       get(ref(db, `games/${gameId}/settings`)).then((snapshot) => {
         if (snapshot.exists()) {
           const settings = snapshot.val();
-          if(settings.status === "active") {
+          if(settings.status === Status.Active) {
             if(settings.remainingPingBlocks > 0) {
               set(ref(db, `games/${gameId}/settings/remainingPingBlocks`), settings.remainingPingBlocks - 1);
               set(ref(db, `games/${gameId}/settings/nextPingDate`), settings.nextPingDate + settings.pingBlockInterval);
@@ -317,7 +328,6 @@ export const getRepository = () => {
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app);
-//  const messaging = getMessaging(app);
 
   return makeFirebaseRepository(db, auth);
 }

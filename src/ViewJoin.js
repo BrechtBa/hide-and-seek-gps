@@ -27,17 +27,17 @@ export default function ViewJoin() {
   return (
     <div>
       <h1>Join</h1>
-      <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+      <div className="Section">
         <h3>Scan to join</h3>
         <div style={{width: "400px"}}>
           <QrScanner onDecode={handleQRResult}  onError={(error) => console.log(error?.message)} />
         </div>
       </div>
 
-      <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+      <div className="Section">
 
 
-        <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
+        <div className="InputContainer">
           <h3>Enter game ID manually</h3>
           <TextField label="Game ID" value={gameId} onChange={(e) => setGameId(e.target.value)}/>
           <Button onClick={() => joinGame(gameId)}>Join</Button>

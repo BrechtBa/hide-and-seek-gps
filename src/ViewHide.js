@@ -112,14 +112,14 @@ export default function ViewHide() {
 
       {isWaiting() && (
         <div>
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             <h3>Scan to join</h3>
             <QRCode value={gameId} style={{maxWidth: "160px", width: "100%", height: "auto"}}/>
           </div>
 
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             <h3>Settings</h3>
-            <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
+            <div className="InputContainer">
               <TextField label="Duration (min)" value={gameSettings.duration/1000/60}
                          onChange={(e) => repository.setDuration(gameId, e.target.value*60*1000, () => {})} />
               <TextField label="Initial Ping Interval (min)" value={gameSettings.initialPingInterval/1000/60}
@@ -144,7 +144,7 @@ export default function ViewHide() {
             <Timer endDate={gameSettings.endDate}/>
           </div>
 
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             <div>Time to next ping:</div>
             <Timer endDate={gameSettings.nextPingDate}/>
             <Button onClick={() => pingBlock()} disabled={gameSettings.remainingPingBlocks <= 0}>Delay next Ping</Button>
@@ -159,7 +159,7 @@ export default function ViewHide() {
             Finished
           </div>
 
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             {gameSettings.foundDate !== 0 && (
               <Time time={gameSettings.foundDate - gameSettings.startDate}/>
             )}
@@ -170,7 +170,7 @@ export default function ViewHide() {
 
       {(isActive() || isFinished()) && (
         <div>
-          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
+          <div className="Section">
             <MyMap markers={getSeekerMarkers(seekers)} />
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function ViewHide() {
 
       {(isActive()) && (
         <div>
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
               <Button onClick={() => setFound()}>Found</Button>
             </div>
@@ -188,7 +188,7 @@ export default function ViewHide() {
 
       {(isFinished()) && (
         <div>
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             <Button onClick={() => clearGame()}>Clear</Button>
           </div>
         </div>

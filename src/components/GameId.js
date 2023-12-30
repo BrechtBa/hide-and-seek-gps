@@ -13,7 +13,7 @@ export default function GameId(props){
       parts[parts.length -1] = "seek";
       value = parts.join("/")
     }
-    console.log(navigator)
+
     if(navigator.share) {
       navigator.share({url: value});
     }

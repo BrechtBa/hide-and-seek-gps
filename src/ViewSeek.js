@@ -121,7 +121,7 @@ export default function ViewSeek() {
             <Timer endDate={gameSettings.endDate}/>
           </div>
 
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             <div>Time to next ping:</div>
             <Timer endDate={gameSettings.nextPingDate}/>
           </div>
@@ -134,7 +134,7 @@ export default function ViewSeek() {
             Finished
           </div>
 
-          <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <div className="Section">
             {gameSettings.foundDate !== 0 && (
               <Time time={gameSettings.foundDate - gameSettings.startDate}/>
             )}
@@ -145,7 +145,7 @@ export default function ViewSeek() {
 
       {(isActive() || isFinished()) && (
         <div>
-          <div className="Section" style={{width: "100%", display: "flex", justifyContent: "center"}}>
+          <div className="Section">
             <MyMap markers={getLastLocationMarkers(lastLocation)} />
           </div>
 

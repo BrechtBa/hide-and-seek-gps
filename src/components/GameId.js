@@ -10,7 +10,7 @@ export default function GameId(props){
     let value = gameId;
     if (window.location) {
       const parts = window.location.href.split("/");
-      parts[parts.length -1] = "hide";
+      parts[parts.length -1] = "seek";
       value = parts.join("/")
     }
     console.log(navigator)

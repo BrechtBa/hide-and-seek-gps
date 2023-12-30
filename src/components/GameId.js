@@ -9,7 +9,9 @@ export default function GameId(props){
   const shareGameId = () => {
     let value = gameId;
     if (window.location) {
-      value = window.location.href.replace("/hide", "/seek")
+      const parts = window.location.href.split("/");
+      parts[parts.length -1] = "hide";
+      value = parts.join("/")
     }
     console.log(navigator)
     if(navigator.share) {

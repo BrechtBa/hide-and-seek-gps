@@ -15,6 +15,7 @@ function App() {
 
           <Route path="/:gameId/hide" element={<ViewHide />} />
           <Route path="/:gameId/seek" element={<ViewSeek />} />
+          <Route path="/:gameId" element={<ViewSeek />} />
           <Route path="/join" element={<ViewJoin />} />
           <Route path="/" element={<ViewHome />} />
         </Routes>

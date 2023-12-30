@@ -29,6 +29,21 @@ function getSeekerId() {
 }
 
 
+const defaultSettings = {
+  status: "unknown",
+  duration: 1800*1000,
+  initialPingInterval: 3*60*1000,
+  finalPingInterval: 1*60*1000,
+  seekerInitialPingInterval: 10*60*1000,
+  pingBlockInterval: 3*60*1000,
+  remainingPingBlocks: 1,
+  startDate: 0,
+  endDate: 0,
+  foundDate: 0,
+  nextPingDate: 0,
+  nextSeekerPingDate: 0
+}
+
 function makeFirebaseRepository(db, auth) {
 
   return {
@@ -36,18 +51,8 @@ function makeFirebaseRepository(db, auth) {
       const gameId = generateString(8);
       const game = {
         settings: {
+          ...defaultSettings,
           status: "waiting",
-          duration: 3600*1000,
-          initialPingInterval: 5*60*1000,
-          finalPingInterval: 2*60*1000,
-          seekerInitialPingInterval: 10*60*1000,
-          pingBlockInterval: 5*60*1000,
-          remainingPingBlocks: 1,
-          startDate: 0,
-          endDate: 0,
-          foundDate: 0,
-          nextPingDate: 0,
-          nextSeekerPingDate: 0
         }
       }
       set(ref(db, `games/${gameId}`), game).then(
@@ -106,12 +111,18 @@ function makeFirebaseRepository(db, auth) {
       });
     },
 
-    endGame: (gameId, successCallback) => {
+    setFound: (gameId, successCallback) => {
       const now = new Date().getTime();
       set(ref(db, `games/${gameId}/settings/status`), "finished").then(
         set(ref(db, `games/${gameId}/settings/foundDate`), now).then(
           successCallback()
         ).catch(() => {})
+      ).catch(() => {});
+    },
+
+    endGame: (gameId, successCallback) => {
+      set(ref(db, `games/${gameId}/settings/status`), "finished").then(
+        successCallback()
       ).catch(() => {});
     },
 
@@ -126,22 +137,8 @@ function makeFirebaseRepository(db, auth) {
 
       useEffect(() => {
         onValue(ref(db, `games/${gameId}/settings`), (snapshot) => {
-          const settings = snapshot.val() || {
-            status: "unknown",
-            duration: 3600*1000,
-            initialPingInterval: 5*60*1000,
-            finalPingInterval: 2*60*1000,
-            seekerInitialPingInterval: 10*60*1000,
-            pingBlockInterval: 5*60*1000,
-            remainingPingBlocks: 1,
-            startDate: 0,
-            endDate: 0,
-            foundDate: 0,
-            nextPingDate: 0,
-            nextSeekerPingDate: 0,
-
-          }
-          setGameSettings(settings);
+          const settings = snapshot.val() || defaultSettings;
+          setGameSettings(settings)
         });
       }, [gameId]);
       return gameSettings;
@@ -199,8 +196,8 @@ function makeFirebaseRepository(db, auth) {
               }
             }
           }
-          else{
-            console.log("Game is not active");
+          else {
+            set(ref(db, `games/${gameId}/settings/nextPingDate`), settings.nextPingDate + 30*1000)
           }
         }
         else {

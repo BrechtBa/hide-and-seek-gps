@@ -54,6 +54,13 @@ export default function ViewHide() {
         }
       }
 
+      if(gameSettings.status === "finished"){
+        if(now >= gameSettings.nextPingDate){
+          repository.setNextPingDate(gameId);
+          setLastLocation();
+        }
+      }
+
     }, 1000);
     return () => clearTimeout(timer);
   // eslint-disable-next-line
@@ -64,8 +71,8 @@ export default function ViewHide() {
     repository.startGame(gameId, () => {});
   }
 
-  const endGame = () => {
-    repository.endGame(gameId, () => {});
+  const setFound = () => {
+    repository.setFound(gameId, () => {});
   }
 
   const clearGame = () => {
@@ -153,7 +160,9 @@ export default function ViewHide() {
           </div>
 
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <Time time={gameSettings.foundDate - gameSettings.startDate}/>
+            {gameSettings.foundDate !== 0 && (
+              <Time time={gameSettings.foundDate - gameSettings.startDate}/>
+            )}
           </div>
 
         </div>
@@ -171,7 +180,7 @@ export default function ViewHide() {
         <div>
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
             <div style={{display: "flex", flexDirection: "column", maxWidth: "400px", gap: "1em"}}>
-              <Button onClick={() => endGame()}>Found</Button>
+              <Button onClick={() => setFound()}>Found</Button>
             </div>
           </div>
         </div>

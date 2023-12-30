@@ -131,7 +131,9 @@ export default function ViewSeek() {
           </div>
 
           <div className="Section" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <Time time={gameSettings.foundDate - gameSettings.startDate}/>
+            {gameSettings.foundDate !== 0 && (
+              <Time time={gameSettings.foundDate - gameSettings.startDate}/>
+            )}
           </div>
 
         </div>
